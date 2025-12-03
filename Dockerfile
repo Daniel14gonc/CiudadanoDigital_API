@@ -32,7 +32,7 @@ RUN python3 -m pip install --upgrade pip setuptools wheel
 
 RUN python3 -m pip wheel --wheel-dir=/wheels -r requirements.txt
 
-RUN npm ci --no-audit --no-fund
+RUN npm install --omit=dev --no-audit --no-fund
 
 # 4) Crear venv e instalar las wheels (si existen)
 RUN python3 -m venv ciudadano_digital
