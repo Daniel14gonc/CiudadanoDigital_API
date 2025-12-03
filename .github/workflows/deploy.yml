@@ -31,3 +31,22 @@ jobs:
           file: ./Dockerfile
           push: true
           tags : ${{ secrets.ECR_REPOSITORY }}:latest
+            - name: Deploy to EC2 via SSM
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=rag-backend" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+
+          aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy new backend image" \
+            --parameters commands="[
+              \"docker pull ${ECR_REPOSITORY}:latest\",
+              \"docker stop rag-backend || true\",
+              \"docker rm rag-backend || true\",
+              \"docker run -d --name rag-backend -p 80:80 ${ECR_REPOSITORY}:latest\"
+            ]" \
+            --output text
+
