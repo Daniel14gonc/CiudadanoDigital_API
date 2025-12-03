@@ -1,0 +1,32 @@
+name: Deploy Infrastructure
+
+# on:
+#   push:
+#     branches: [main]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      
+      - name: Terraform Init & Apply
+        working-directory: ./terraform
+        run: |
+          terraform init
+          terraform plan
+          terraform apply -auto-approve
+      
+      - name: Get outputs
+        id: tf-outputs
+        working-directory: ./terraform
+        run: |
+          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+    
+    outputs:
+      ec2_ip: ${{ steps.tf-outputs.outputs.ec2_ip }}
