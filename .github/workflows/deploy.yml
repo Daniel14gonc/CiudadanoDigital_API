@@ -51,4 +51,17 @@ jobs:
               \"docker run -d --name comp-digital -p 80:80 ${ECR_REPOSITORY}:latest\"
             ]" \
             --output text
+      - name: Check SSM command output
+        run: |
+          COMMAND_ID=$(aws ssm list-commands \
+            --query "Commands[0].CommandId" \
+            --output text)
+
+          echo "COMMAND_ID: $COMMAND_ID"
+
+          aws ssm list-command-invocations \
+            --command-id "$COMMAND_ID" \
+            --details \
+            --output text
+
 
