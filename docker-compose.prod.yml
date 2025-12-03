@@ -1,0 +1,11 @@
+services:
+  app:
+    image: 639135895801.dkr.ecr.us-east-2.amazonaws.com/uvg/comp_digital:latest
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - PYTHON_BIN=/opt/venv/bin/python
+      - DIRECTORY=/app/data
+    ports:
+      - "80:3000"

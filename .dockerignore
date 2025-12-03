@@ -1,0 +1,11 @@
+# Ignore local venv
+ciudadano_digital/
+
+# Ignore local node modules
+node_modules/
+
+# Ignore git and other artifacts
+.git
+.gitignore
+.dockerignore
+.env
