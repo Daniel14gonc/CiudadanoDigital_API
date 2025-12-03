@@ -35,9 +35,9 @@ RUN python3 -m pip wheel --wheel-dir=/wheels -r requirements.txt
 RUN npm ci --no-audit --no-fund
 
 # 4) Crear venv e instalar las wheels (si existen)
-RUN python3 -m venv ciudadano_digital \
- && ./ciudadano_digital/bin/python -m pip install --upgrade pip setuptools \
- && if [ -d /wheels ]; then ./ciudadano_digital/bin/pip install --no-index --find-links=/wheels -r /usr/src/app/requirements.txt; fi
+RUN python3 -m venv ciudadano_digital
+RUN ./ciudadano_digital/bin/python -m pip install --upgrade pip setuptools
+RUN if [ -d /wheels ]; then ./ciudadano_digital/bin/pip install --no-index --find-links=/wheels -r /usr/src/app/requirements.txt; fi
 
 # 5) Copiar el resto de la aplicación
 COPY . .
