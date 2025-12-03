@@ -62,4 +62,4 @@ RUN echo "---- Debug: tesseract & python ----" \
 EXPOSE 3000
 
 # Ajusta el comando final a tu necesidad (dev / prod)
-CMD ["npm", "run", "production"]
+CMD ["node", "./bin/www.js"]
