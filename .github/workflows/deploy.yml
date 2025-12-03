@@ -38,6 +38,8 @@ jobs:
             --query "Reservations[0].Instances[0].InstanceId" \
             --output text)
 
+          echo "FOUND INSTANCE ID: $INSTANCE_ID"
+
           aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
