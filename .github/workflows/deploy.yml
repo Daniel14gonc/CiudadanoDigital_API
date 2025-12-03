@@ -58,15 +58,13 @@ jobs:
           --output text
       - name: Check SSM command output
         run: |
-          COMMAND_ID=$(aws ssm list-commands \
-            --query "Commands[0].CommandId" \
-            --output text)
-
-          echo "COMMAND_ID: $COMMAND_ID"
-
-          aws ssm list-command-invocations \
-            --command-id "$COMMAND_ID" \
-            --details \
-            --output text
+          COMMAND_ID=$(aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --comment "Deploy new backend image" \
+          --parameters '{"commands":[ ... ]}' \
+          --region us-east-2 \
+          --query "Command.CommandId" \
+          --output json | tr -d '"')
 
 
