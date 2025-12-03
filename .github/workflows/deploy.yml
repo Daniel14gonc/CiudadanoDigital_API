@@ -48,14 +48,23 @@ jobs:
           --document-name "AWS-RunShellScript" \
           --comment "Deploy new backend image" \
           --parameters '{"commands": [
+            "set -e",
+            "echo Fetching envfile from SSM Parameter Store...",
+            "aws ssm get-parameter --name /comp-digital-env --with-decryption --query Parameter.Value --output text > /home/ubuntu/envfile",
+            "chmod 600 /home/ubuntu/envfile",
+            "echo Logging in to ECR...",
             "aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 639135895801.dkr.ecr.us-east-2.amazonaws.com",
+            "echo Pulling image...",
             "docker pull 639135895801.dkr.ecr.us-east-2.amazonaws.com/uvg/comp_digital:latest",
+            "echo Stopping old container if exists...",
             "docker stop comp_digital || true",
             "docker rm comp_digital || true",
-            "docker run -d --name comp_digital -p 80:80 639135895801.dkr.ecr.us-east-2.amazonaws.com/uvg/comp_digital:latest"
+            "echo Running new container with env-file...",
+            "docker run -d --name comp_digital --env-file /home/ubuntu/envfile -p 80:80 639135895801.dkr.ecr.us-east-2.amazonaws.com/uvg/comp_digital:latest"
           ]}' \
           --region us-east-2 \
-          --output text
+          --query "Command.CommandId" \
+          --output json | tr -d '"'
       - name: Check SSM command output
         run: |
           COMMAND_ID=$(aws ssm send-command \
