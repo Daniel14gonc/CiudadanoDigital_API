@@ -31,7 +31,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags : ${{ secrets.ECR_REPOSITORY }}:latest
-            - name: Deploy to EC2 via SSM
+      - name: Deploy to EC2 via SSM
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=rag-backend" \
