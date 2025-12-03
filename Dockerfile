@@ -28,9 +28,11 @@ COPY requirements.txt ./
 COPY package*.json ./
 
 # 3) Preparar wheels Python (si hay requirements) y node modules
-RUN python3 -m pip install --upgrade pip setuptools wheel \
- && if [ -f requirements.txt ]; then python3 -m pip wheel --wheel-dir=/wheels -r requirements.txt; fi \
- && npm ci --no-audit --no-fund
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+RUN python3 -m pip wheel --wheel-dir=/wheels -r requirements.txt
+
+RUN npm ci --no-audit --no-fund
 
 # 4) Crear venv e instalar las wheels (si existen)
 RUN python3 -m venv ciudadano_digital \
