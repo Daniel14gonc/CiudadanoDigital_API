@@ -68,7 +68,7 @@ jobs:
               \"echo Replacing container...\",
               \"docker stop comp_digital || true\",
               \"docker rm comp_digital || true\",
-              \"docker run -d --name comp_digital --env-file /home/ubuntu/envfile -p 80:80 $ECR_REGISTRY/$REPO_NAME:latest\"
+              \"docker run -d --name comp_digital --env-file /home/ubuntu/envfile -p 80:3000 $ECR_REGISTRY/$REPO_NAME:latest\"
             ]}" \
             --region "$REGION" \
             --query "Command.CommandId" \
