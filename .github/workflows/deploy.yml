@@ -34,9 +34,12 @@ jobs:
         run: |
           # 1. Obtener Instance ID
           INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=compdi-instance" \
-            --query "Reservations[0].Instances[0].InstanceId" \
+            --filters \
+              "Name=tag:Name,Values=compdi-instance" \
+              "Name=instance-state-name,Values=running" \
+            --query "Reservations[].Instances[].InstanceId | [0]" \
             --output text)
+
 
           if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
             echo "::error::No EC2 instance found with tag Name=compdi-instance"
