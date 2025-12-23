@@ -61,5 +61,5 @@ RUN echo "---- Debug: tesseract & python ----" \
 
 EXPOSE 3000
 
-# Ajusta el comando final a tu necesidad (dev / prod)
-CMD ["npm", "run", "dev"]
+COPY entrypoint.sh ./
+CMD ["./entrypoint.sh"]

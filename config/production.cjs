@@ -7,7 +7,7 @@ dotenvExpand.expand(env)
 
 module.exports = {
   port: process.env.PORT || 3000,
-  dbConnectionUri: process.env.DEV_DB_CONNECTION_URI,
+  dbConnectionUri: process.env.DATABASE_URL,
   jwtKey: process.env.JWT_KEY,
   allowInsecureConnections: true,
   sendErrorObj: true,
