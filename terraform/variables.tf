@@ -7,7 +7,7 @@ variable "aws_region" {
 
 variable "instance_type" {
   type    = string
-  default = "t3.micro"
+  default = "m7i-flex.large"
 }
 
 variable "existing_key_name" {
@@ -22,7 +22,12 @@ variable "ssh_cidr" {
 
 variable "http_cidr" {
   type    = string
-  default = "190.56.32.67/32"
+  default = "181.209.150.71/32"
+}
+
+variable "http_EC2" {
+  type    = string
+  default = "3.136.3.106/32"
 }
 
 variable "subnet_id" {
@@ -48,4 +53,22 @@ variable "db_username" {
 variable "db_password" {
   type    = string
   default = "postgres"
+}
+
+variable "elastic_ip_id" {
+  description = "elastic IP for EC2"
+  type = string
+  default = "eipalloc-0fe90292dc06e9ae7"
+}
+
+variable "subnets_availability_zone_a" {
+  description = "availability zone for subnets"
+  type = string
+  default = "us-east-2a"
+}
+
+variable "subnets_availability_zone_b" {
+  description = "availability zone for subnets"
+  type = string
+  default = "us-east-2b"
 }
