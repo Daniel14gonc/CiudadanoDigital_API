@@ -5,14 +5,14 @@ name: Deploy RAG backend
 #     branches: [main]
 on:
   workflow_run:
-    workflows: "Deploy Infrastructure"
+    workflows: ["Deploy Infrastructure"]
     types:
       - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
