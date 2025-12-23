@@ -21,12 +21,3 @@ jobs:
           terraform init
           terraform plan
           terraform apply -auto-approve
-      
-      - name: Get outputs
-        id: tf-outputs
-        working-directory: ./terraform
-        run: |
-          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
-    
-    outputs:
-      ec2_ip: ${{ steps.tf-outputs.outputs.ec2_ip }}
