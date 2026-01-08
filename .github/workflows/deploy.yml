@@ -37,12 +37,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # - name: Build and push docker image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ${{ steps.login-ecr.outputs.registry }}/uvg/comp_digital:latest
+      - name: Build and push docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/uvg/comp_digital:latest
 
       - name: Deploy to EC2 via SSM and Wait
         run: |
