@@ -163,6 +163,30 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
+resource "aws_iam_policy" "s3_backend_policy" {
+  name = "comp-digital-s3-backend"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "arn:aws:s3:::${var.bucket_name}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "s3_backend_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.s3_backend_policy.arn
+}
+
 resource "aws_iam_role_policy_attachment" "ecr_read_only" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
