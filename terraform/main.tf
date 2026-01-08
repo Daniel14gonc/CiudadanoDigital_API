@@ -324,3 +324,42 @@ resource "aws_lb_target_group_attachment" "app_attach" {
   target_id        = aws_instance.comp_digital.id
   port             = 80
 }
+
+resource "aws_ecr_repository" "comp_digital" {
+  name                 = "uvg/comp_digital"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = {
+    Name = "comp-digital-ecr"
+    Env  = "prod"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "comp_digital" {
+  repository = aws_ecr_repository.comp_digital.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 images"
+        selection = {
+          tagStatus     = "any"
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
