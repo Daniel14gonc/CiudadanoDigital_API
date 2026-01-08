@@ -83,8 +83,8 @@ jobs:
               \"if [ -z \\\"\$BASE_ENV\\\" ] || [ -z \\\"\$DB_URL\\\" ]; then echo 'ERROR: Parámetros vacíos'; exit 1; fi\",
 
               # Escribir al archivo
-              \"echo \\\"\$BASE_ENV\\\" > /home/ubuntu/envfile\",
-              \"echo \\\"DATABASE_URL=\$DB_URL\\\" >> /home/ubuntu/envfile\",
+              \"printf \"%s\n\" \"$BASE_ENV\" > /home/ubuntu/envfile",
+              \"printf \"DATABASE_URL=%s\n\" \"$DB_URL\" >> /home/ubuntu/envfile",
               \"chown ubuntu:ubuntu /home/ubuntu/envfile\",
               \"chmod 600 /home/ubuntu/envfile\",
 
