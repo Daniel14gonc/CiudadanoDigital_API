@@ -76,8 +76,8 @@ jobs:
               \"set -e\",
 
               \"echo 'Capturando parámetros de SSM...'\",
-              "aws ssm get-parameter --name /comp-digital-env --with-decryption --query Parameter.Value --output text | sudo tee /home/ubuntu/envfile > /dev/null",
-              "aws ssm get-parameter --name /comp-digital/database/DATABASE_URL --with-decryption --query Parameter.Value --output text | sed 's/^/DATABASE_URL=/' | sudo tee -a /home/ubuntu/envfile > /dev/null",
+              \"aws ssm get-parameter --name /comp-digital-env --with-decryption --query Parameter.Value --output text | sudo tee /home/ubuntu/envfile > /dev/null\",
+              \"aws ssm get-parameter --name /comp-digital/database/DATABASE_URL --with-decryption --query Parameter.Value --output text | sed 's/^/DATABASE_URL=/' | sudo tee -a /home/ubuntu/envfile > /dev/null\",
 
               # Escribir al archivo
               \"chown ubuntu:ubuntu /home/ubuntu/envfile\",
