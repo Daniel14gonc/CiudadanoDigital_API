@@ -1,7 +1,7 @@
 # Resources
 terraform {
   backend "s3" {
-    bucket         = "comp-digital-tf-state"
+    bucket         = "comp-digital-terraform-state"
     key            = "prod/terraform.tfstate"
     region         = "us-east-2"
     dynamodb_table = "terraform-locks"
