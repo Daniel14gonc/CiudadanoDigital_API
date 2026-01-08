@@ -79,8 +79,7 @@ jobs:
               \"aws ssm get-parameter --name /comp-digital-env --with-decryption --query Parameter.Value --output text > /home/ubuntu/envfile\",
 
               \"echo Fetching DATABASE_URL...\",
-              \"DB_URL=$(aws ssm get-parameter --name /comp-digital/database/DATABASE_URL --with-decryption --query Parameter.Value --output text)\",
-              \"echo DATABASE_URL=$DB_URL >> /home/ubuntu/envfile\",
+              \"echo DATABASE_URL=$(aws ssm get-parameter --name /comp-digital/database/DATABASE_URL --with-decryption --query Parameter.Value --output text) >> /home/ubuntu/envfile\",
 
               \"chown ubuntu:ubuntu /home/ubuntu/envfile\",
               \"chmod 600 /home/ubuntu/envfile\",
