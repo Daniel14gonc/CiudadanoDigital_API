@@ -271,6 +271,19 @@ resource "aws_db_instance" "comp_digital_db" {
   allocated_storage      = 20
 }
 
+resource "aws_ssm_parameter" "database_url" {
+  name  = "/comp-digital/database/DATABASE_URL"
+  type  = "SecureString"
+
+  value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.comp_digital_db.address}:${aws_db_instance.comp_digital_db.port}/postgres?sslmode=require"
+
+  tags = {
+    Name = "comp-digital-db-url"
+    Env  = "prod"
+  }
+}
+
+
 
 resource "aws_lb" "alb" {
   name               = "comp-digital-alb"
