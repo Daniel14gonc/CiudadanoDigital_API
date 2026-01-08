@@ -3,11 +3,11 @@ name: Deploy RAG backend
 # on:
 #   push:
 #     branches: [main]
-on:
-  workflow_run:
-    workflows: ["Deploy Infrastructure"]
-    types:
-      - completed
+# on:
+#   workflow_run:
+#     workflows: ["Deploy Infrastructure"]
+#     types:
+#       - completed
 
 jobs:
   deploy:
