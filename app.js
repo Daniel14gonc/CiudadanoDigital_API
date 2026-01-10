@@ -30,9 +30,10 @@ const avoidCors = config.get('avoidCors')
 if (avoidCors) app.use(cors())
 
 // Rutas
-app.get(`${api}/`, (_, res) => {
+app.get(['/api', '/api/'], (_, res) => {
   res.send('API de CIUDADANO DIGITAL')
 })
+
 app.use(`${api}/auth/`, authRouter)
 app.use(`${api}/user/`, userRouter)
 app.use(`${api}/chat/`, chatRouter)

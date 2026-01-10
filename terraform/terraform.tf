@@ -1,7 +1,7 @@
 # Terraform config
 terraform {
   backend "s3" {
-    bucket         = "comp-digital-terraform-state1"
+    bucket         = "comp-digital-terraform-state"
     key            = "prod/terraform.tfstate"
     region         = "us-east-2"
     dynamodb_table = "terraform-locks"
