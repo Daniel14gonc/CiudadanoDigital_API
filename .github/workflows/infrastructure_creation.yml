@@ -17,6 +17,7 @@ jobs:
     env:
       TF_VAR_database_username: ${{ secrets.DATABASE_USERNAME }}
       TF_VAR_database_password: ${{ secrets.DATABASE_PASSWORD }}
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
     steps:
       - uses: actions/checkout@v3
 
