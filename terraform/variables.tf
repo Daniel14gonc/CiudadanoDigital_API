@@ -5,16 +5,6 @@ variable "aws_region" {
   description = "AWS region"
 }
 
-variable "s3_terraform_state_bucket" {
-  type        = string
-  description = "S3 bucket for Terraform state"
-}
-
-variable "dynamo_db_terraform_lock_table" {
-  type        = string
-  description = "DynamoDB table for Terraform state locking"
-}
-
 variable "instance_type" {
   type    = string
   default = "m7i-flex.large"
