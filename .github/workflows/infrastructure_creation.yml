@@ -40,10 +40,8 @@ jobs:
             -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TERRAFORM_LOCK_TABLE }}" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Plan
+      - name: Terraform Plan & Apply
         working-directory: ./terraform
-        run: terraform plan
-
-      - name: Terraform Apply
-        working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: |
+          terraform plan
+          terraform apply -auto-approve
