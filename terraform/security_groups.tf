@@ -57,14 +57,6 @@ resource "aws_security_group" "comp_digital_db_sg" {
     security_groups = [aws_security_group.comp_digital_sg_ec2.id]
   }
 
-  ingress {
-    description = "Acceso desde mi IP local para pruebas"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [var.http_cidr]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0

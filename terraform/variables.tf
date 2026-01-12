@@ -1,8 +1,18 @@
 # Variables
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  description = "AWS region"
+}
+
+variable "s3_terraform_state_bucket" {
+  type        = string
+  description = "S3 bucket for Terraform state"
+}
+
+variable "dynamo_db_terraform_lock_table" {
+  type        = string
+  description = "DynamoDB table for Terraform state locking"
 }
 
 variable "instance_type" {
@@ -10,65 +20,22 @@ variable "instance_type" {
   default = "m7i-flex.large"
 }
 
-variable "existing_key_name" {
-  type    = string
-  default = "ciudadano"
-}
-
-variable "ssh_cidr" {
-  type    = string
-  default = "0.0.0.0/0"
-}
-
-variable "http_cidr" {
-  type    = string
-  default = "181.209.150.71/32"
-}
-
-variable "http_EC2" {
-  type    = string
-  default = "3.136.3.106/32"
-}
-
-variable "subnet_id" {
-  type    = string
-  default = "subnet-05155c9661daeda26"
-}
-
 variable "bucket_name" {
   type    = string
   default = "comp-digital-bucket"
 }
 
-variable "environment" {
-  type    = string
-  default = "dev"
+variable "database_username" {
+  type        = string
+  sensitive   = true
 }
 
-variable "db_username" {
-  type    = string
-  default = "postgres"
+variable "database_password" {
+  type        = string
+  sensitive   = true
 }
 
-variable "db_password" {
-  type    = string
-  default = "postgres"
-}
-
-variable "elastic_ip_id" {
-  description = "elastic IP for EC2"
-  type = string
-  default = "eipalloc-0fe90292dc06e9ae7"
-}
-
-variable "subnets_availability_zone_a" {
-  description = "availability zone for subnets"
-  type = string
-  default = "us-east-2a"
-}
-
-variable "subnets_availability_zone_b" {
-  description = "availability zone for subnets"
-  type = string
-  default = "us-east-2b"
+locals {
+  subnets_availability_zone_a = "${var.aws_region}a"
+  subnets_availability_zone_b = "${var.aws_region}b"
 }

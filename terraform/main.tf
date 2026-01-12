@@ -16,7 +16,7 @@ resource "aws_subnet" "public_a" {
   vpc_id = aws_vpc.main.id
   cidr_block = "10.0.0.0/24"
   map_public_ip_on_launch = true
-  availability_zone = var.subnets_availability_zone_a
+  availability_zone = local.subnets_availability_zone_a
 
   tags = {
     Name = "public-subnet-a"
@@ -27,17 +27,17 @@ resource "aws_subnet" "public_b" {
   vpc_id = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true
-  availability_zone = var.subnets_availability_zone_b
+  availability_zone = local.subnets_availability_zone_b
 
   tags = {
-    Name = "public-subnet-b" # TODO: CAMBIAR A public_subnet_b
+    Name = "public-subnet-b"
   }
 }
 
 resource "aws_subnet" "backend" {
   vpc_id = aws_vpc.main.id
   cidr_block = "10.0.2.0/24"
-  availability_zone = var.subnets_availability_zone_a
+  availability_zone = local.subnets_availability_zone_a
   tags = {
     Name = "backend-subnet"
   }
@@ -91,11 +91,6 @@ resource "aws_route_table" "private_rt" {
 
 resource "aws_route_table" "db_rt" {
   vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
 
   tags = {
     Name = "db-rt"
@@ -224,8 +219,7 @@ resource "aws_instance" "comp_digital" {
 resource "aws_subnet" "private_db_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"
-  map_public_ip_on_launch = true
-  availability_zone = var.subnets_availability_zone_a
+  availability_zone = local.subnets_availability_zone_a
 
   tags = {
     Name = "db-subnet-a"
@@ -235,8 +229,7 @@ resource "aws_subnet" "private_db_a" {
 resource "aws_subnet" "private_db_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.5.0/24"
-  map_public_ip_on_launch = true
-  availability_zone = var.subnets_availability_zone_b
+  availability_zone = local.subnets_availability_zone_b
 
   tags = {
     Name = "db-subnet-b"
@@ -261,11 +254,11 @@ resource "aws_db_instance" "comp_digital_db" {
   instance_class         = "db.t4g.micro"
   engine                 = "postgres"
   engine_version         = "17.6"
-  username               = var.db_username
-  password               = var.db_password
+  username               = var.database_username
+  password               = var.database_password
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.comp_digital_db_sg.id]
-  publicly_accessible    = true
+  publicly_accessible    = false
   skip_final_snapshot    = true
   allocated_storage      = 20
 }
@@ -274,15 +267,13 @@ resource "aws_ssm_parameter" "database_url" {
   name  = "/comp-digital/database/DATABASE_URL"
   type  = "SecureString"
 
-  value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.comp_digital_db.address}:${aws_db_instance.comp_digital_db.port}/postgres?sslmode=require"
+  value = "postgresql://${var.database_username}:${var.database_password}@${aws_db_instance.comp_digital_db.address}:${aws_db_instance.comp_digital_db.port}/postgres?sslmode=require"
 
   tags = {
     Name = "comp-digital-db-url"
     Env  = "prod"
   }
 }
-
-
 
 resource "aws_lb" "alb" {
   name               = "comp-digital-alb"

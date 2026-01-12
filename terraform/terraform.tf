@@ -1,10 +1,10 @@
 # Terraform config
 terraform {
   backend "s3" {
-    bucket         = "comp-digital-terraform-state2"
+    bucket         = var.s3_terraform_state_bucket
     key            = "prod/terraform.tfstate"
-    region         = "us-east-2"
-    dynamodb_table = "terraform-locks"
+    region         = var.aws_region
+    dynamodb_table = var.dynamo_db_terraform_lock_table
     encrypt        = true
   }
 
