@@ -158,6 +158,15 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
+resource "aws_s3_bucket" "backend_bucket" {
+  bucket = var.bucket_name
+
+  tags = {
+    Name = "comp-digital-backend"
+    Env  = "prod"
+  }
+}
+
 resource "aws_iam_policy" "s3_backend_policy" {
   name = "comp-digital-s3-backend"
 
