@@ -21,7 +21,7 @@ sequenceDiagram
 
     User->>App: Ingresa email y contraseña
     App->>App: getDeviceId()
-    App->>API: POST /auth/login<br/>{email, password, deviceId}
+    App->>API: POST /api/auth/login<br/>{email, password, deviceId}
     activate API
     API->>API: Validar credenciales
     API->>API: Generar JWT Token
@@ -33,7 +33,7 @@ sequenceDiagram
     App->>DataStore: saveKeyValue('refreshToken', refreshToken)
     App->>DataStore: saveKeyValue('expire', expireDate)
     
-    App->>API: GET /user/logged<br/>Header: Authorization: Bearer token
+    App->>API: GET /api/user/logged<br/>Header: Authorization: Bearer token
     activate API
     API->>API: Validar token
     API-->>App: 200 UserDto
@@ -49,8 +49,8 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `POST /auth/login` | POST | Login con email y contraseña |
-| `GET /user/logged` | GET | Obtiene datos del usuario autenticado |
+| `POST /api/auth/login` | POST | Login con email y contraseña |
+| `GET /api/user/logged` | GET | Obtiene datos del usuario autenticado |
 
 ### Parámetros de Entrada
 ```kotlin
@@ -106,7 +106,7 @@ sequenceDiagram
 
     User->>App: Completa formulario de registro
     App->>App: Validar datos locales
-    App->>API: POST /user<br/>{email, names, lastnames, phoneCode,<br/>phoneNumber, password, birthdate, deviceId}
+    App->>API: POST /api/user<br/>{email, names, lastnames, phoneCode,<br/>phoneNumber, password, birthdate, deviceId}
     activate API
     API->>API: Validar datos
     API->>API: Hash password
@@ -120,7 +120,7 @@ sequenceDiagram
     App->>DataStore: saveKeyValue('refreshToken', refreshToken)
     App->>DataStore: saveKeyValue('expire', expireDate)
     
-    App->>API: GET /user/logged<br/>Header: Authorization: Bearer token
+    App->>API: GET /api/user/logged<br/>Header: Authorization: Bearer token
     activate API
     API-->>App: 200 UserDto
     deactivate API
@@ -135,8 +135,8 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `POST /user` | POST | Registra un nuevo usuario |
-| `GET /user/logged` | GET | Obtiene datos del usuario autenticado |
+| `POST /api/user` | POST | Registra un nuevo usuario |
+| `GET /api/user/logged` | GET | Obtiene datos del usuario autenticado |
 
 ### Parámetros de Entrada
 ```kotlin
@@ -188,12 +188,12 @@ sequenceDiagram
     User->>App: Crea nuevo chat
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh<br/>Header: Authorization: Bearer token
+    AuthRepo->>API: POST /api/auth/refresh<br/>Header: Authorization: Bearer token
     API-->>AuthRepo: 200 AuthResponse<br/>(token válido o nuevo)
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
-    App->>API: POST /chat<br/>Header: Authorization: Bearer token<br/>{name: String}
+    App->>API: POST /api/chat<br/>Header: Authorization: Bearer token<br/>{name: String}
     activate API
     API->>API: Validar token
     API->>API: Crear chat en BD
@@ -208,8 +208,8 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `POST /auth/refresh` | POST | Refresca el JWT token |
-| `POST /chat` | POST | Crea un nuevo chat |
+| `POST /api/auth/refresh` | POST | Refresca el JWT token |
+| `POST /api/chat` | POST | Crea un nuevo chat |
 
 ### Parámetros de Entrada
 ```kotlin
@@ -257,12 +257,12 @@ sequenceDiagram
     User->>App: Visualiza lista de chats
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh<br/>Header: Authorization: Bearer token
+    AuthRepo->>API: POST /api/auth/refresh<br/>Header: Authorization: Bearer token
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
-    App->>API: GET /chat<br/>Header: Authorization: Bearer token
+    App->>API: GET /api/chat<br/>Header: Authorization: Bearer token
     activate API
     API->>API: Validar token
     API->>API: Obtener chats del usuario
@@ -277,8 +277,8 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `POST /auth/refresh` | POST | Refresca el JWT token |
-| `GET /chat` | GET | Obtiene chats del usuario |
+| `POST /api/auth/refresh` | POST | Refresca el JWT token |
+| `GET /api/chat` | GET | Obtiene chats del usuario |
 
 ### Respuestas
 ```kotlin
@@ -315,12 +315,12 @@ sequenceDiagram
     User->>App: Abre un chat
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh
+    AuthRepo->>API: POST /api/auth/refresh
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
-    App->>API: GET /message/{chatId}?limit=20&offset=0<br/>Header: Authorization: Bearer token
+    App->>API: GET /api/message/{chatId}?limit=20&offset=0<br/>Header: Authorization: Bearer token
     activate API
     API->>API: Validar token
     API->>API: Obtener mensajes con paginación
@@ -344,15 +344,15 @@ sequenceDiagram
     User->>App: Escribe y envía mensaje
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh
+    AuthRepo->>API: POST /api/auth/refresh
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
     alt ChatId existe
-        App->>API: POST /message/{chatId}<br/>Header: Authorization: Bearer token<br/>{content: String}
+        App->>API: POST /api/message/{chatId}<br/>Header: Authorization: Bearer token<br/>{content: String}
     else ChatId no existe
-        App->>API: POST /message<br/>Header: Authorization: Bearer token<br/>{content: String}
+        App->>API: POST /api/message<br/>Header: Authorization: Bearer token<br/>{content: String}
     end
     
     activate API
@@ -378,15 +378,15 @@ sequenceDiagram
 
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh
+    AuthRepo->>API: POST /api/auth/refresh
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
     alt ChatId existe
-        App->>API: GET /message/response/{chatId}?question=query<br/>Header: Authorization: Bearer token
+        App->>API: GET /api/message/response/{chatId}?question=query<br/>Header: Authorization: Bearer token
     else ChatId no existe
-        App->>API: GET /message/response?question=query<br/>Header: Authorization: Bearer token
+        App->>API: GET /api/message/response?question=query<br/>Header: Authorization: Bearer token
     end
     
     activate API
@@ -399,7 +399,7 @@ sequenceDiagram
     App->>LocalDB: insertMessage(ResponseModel)
     
     alt assigned == false
-        App->>API: PUT /message/{messageId}/{chatId}<br/>Header: Authorization: Bearer token<br/>(Asignar mensaje al chat)
+        App->>API: PUT /api/message/{messageId}/{chatId}<br/>Header: Authorization: Bearer token<br/>(Asignar mensaje al chat)
     end
 ```
 
@@ -407,12 +407,12 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción | Parámetros |
 |----------|--------|-------------|-----------|
-| `GET /message/{chatId}` | GET | Obtiene mensajes del chat | `limit`, `offset` |
-| `POST /message/{chatId}` | POST | Crea mensaje en chat existente | Body: `NewMessageRequest` |
-| `POST /message` | POST | Crea mensaje sin chat asignado | Body: `NewMessageRequest` |
-| `GET /message/response/{chatId}` | GET | Obtiene respuesta IA para chat | `question` (query param) |
-| `GET /message/response` | GET | Obtiene respuesta IA sin chat | `question` (query param) |
-| `PUT /message/{messageId}/{chatId}` | PUT | Asigna mensaje a chat | - |
+| `GET /api/message/{chatId}` | GET | Obtiene mensajes del chat | `limit`, `offset` |
+| `POST /api/message/{chatId}` | POST | Crea mensaje en chat existente | Body: `NewMessageRequest` |
+| `POST /api/message` | POST | Crea mensaje sin chat asignado | Body: `NewMessageRequest` |
+| `GET /api/message/response/{chatId}` | GET | Obtiene respuesta IA para chat | `question` (query param) |
+| `GET /api/message/response` | GET | Obtiene respuesta IA sin chat | `question` (query param) |
+| `PUT /api/message/{messageId}/{chatId}` | PUT | Asigna mensaje a chat | - |
 
 ### Parámetros de Entrada
 ```kotlin
@@ -466,12 +466,12 @@ sequenceDiagram
     User->>App: Accede a sección de documentos
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh
+    AuthRepo->>API: POST /api/auth/refresh
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
-    App->>API: GET /document<br/>Header: Authorization: Bearer token
+    App->>API: GET /api/document<br/>Header: Authorization: Bearer token
     activate API
     API->>API: Validar token
     API->>API: Obtener documentos del usuario
@@ -499,12 +499,12 @@ sequenceDiagram
     
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh
+    AuthRepo->>API: POST /api/auth/refresh
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
-    App->>API: POST /document<br/>Header: Authorization: Bearer token<br/>Multipart:<br/>- filename (RequestBody)<br/>- author (RequestBody)<br/>- year (RequestBody)<br/>- minAge (RequestBody)<br/>- maxAge (RequestBody)<br/>- file (MultipartBody.Part)
+    App->>API: POST /api/document<br/>Header: Authorization: Bearer token<br/>Multipart:<br/>- filename (RequestBody)<br/>- author (RequestBody)<br/>- year (RequestBody)<br/>- minAge (RequestBody)<br/>- maxAge (RequestBody)<br/>- file (MultipartBody.Part)
     activate API
     API->>API: Validar token
     API->>API: Validar archivo
@@ -530,12 +530,12 @@ sequenceDiagram
     User->>App: Elimina documento
     App->>AuthRepo: refreshToken()
     activate AuthRepo
-    AuthRepo->>API: POST /auth/refresh
+    AuthRepo->>API: POST /api/auth/refresh
     API-->>AuthRepo: 200 AuthResponse
     AuthRepo-->>App: token (String)
     deactivate AuthRepo
     
-    App->>API: DELETE /document/{documentId}<br/>Header: Authorization: Bearer token
+    App->>API: DELETE /api/document/{documentId}<br/>Header: Authorization: Bearer token
     activate API
     API->>API: Validar token
     API->>API: Eliminar archivo del servidor
@@ -551,9 +551,9 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción | Content-Type |
 |----------|--------|-------------|--------------|
-| `GET /document` | GET | Obtiene documentos del usuario | JSON |
-| `POST /document` | POST | Carga nuevo documento | Multipart/form-data |
-| `DELETE /document/{documentId}` | DELETE | Elimina documento | JSON |
+| `GET /api/document` | GET | Obtiene documentos del usuario | JSON |
+| `POST /api/document` | POST | Carga nuevo documento | Multipart/form-data |
+| `DELETE /api/document/{documentId}` | DELETE | Elimina documento | JSON |
 
 ### Parámetros de Entrada
 ```kotlin
@@ -618,7 +618,7 @@ sequenceDiagram
         AuthRepo->>DataStore: getKeyValue('refreshToken')
         DataStore-->>AuthRepo: refreshToken
         
-        AuthRepo->>API: POST /auth/refresh<br/>Header: Authorization: Bearer oldToken<br/>{refreshToken}
+        AuthRepo->>API: POST /api/auth/refresh<br/>Header: Authorization: Bearer oldToken<br/>{refreshToken}
         activate API
         API->>API: Validar refreshToken
         API->>API: Generar nuevo JWT
@@ -659,7 +659,7 @@ sequenceDiagram
     participant Email as 📧 Servicio Email
 
     User->>App: Ingresa email
-    App->>API: POST /auth/sendRecovery<br/>{email}
+    App->>API: POST /api/auth/sendRecovery<br/>{email}
     activate API
     API->>API: Buscar usuario
     API->>Email: Enviar código de verificación
@@ -668,7 +668,7 @@ sequenceDiagram
     deactivate API
     
     User->>App: Ingresa código del email
-    App->>API: POST /auth/verifyCode<br/>{email, code}
+    App->>API: POST /api/auth/verifyCode<br/>{email, code}
     activate API
     API->>API: Validar código
     API->>API: Generar token de recuperación
@@ -676,7 +676,7 @@ sequenceDiagram
     deactivate API
     
     User->>App: Ingresa nueva contraseña
-    App->>API: POST /auth/recoverPassword<br/>Header: Authorization: Bearer recoveryToken<br/>{password: String}
+    App->>API: POST /api/auth/recoverPassword<br/>Header: Authorization: Bearer recoveryToken<br/>{password: String}
     activate API
     API->>API: Validar token de recuperación
     API->>API: Hash nueva contraseña
@@ -691,9 +691,9 @@ sequenceDiagram
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `POST /auth/sendRecovery` | POST | Envía código de verificación |
-| `POST /auth/verifyCode` | POST | Valida código y obtiene token de recuperación |
-| `POST /auth/recoverPassword` | POST | Establece nueva contraseña |
+| `POST /api/auth/sendRecovery` | POST | Envía código de verificación |
+| `POST /api/auth/verifyCode` | POST | Valida código y obtiene token de recuperación |
+| `POST /api/auth/recoverPassword` | POST | Establece nueva contraseña |
 
 ### Parámetros de Entrada
 ```kotlin
@@ -747,13 +747,13 @@ graph TD
     E -->|Usar| H["💬 Mensajes"]
     E -->|Subir| I["📄 Documentos"]
     
-    F -->|API| J["POST /chat"]
-    G -->|API| K["GET /chat"]
-    H -->|API| L["POST/GET /message"]
-    I -->|API| M["POST/GET/DELETE /document"]
+    F -->|API| J["POST /api/chat"]
+    G -->|API| K["GET /api/chat"]
+    H -->|API| L["POST/GET /api/message"]
+    I -->|API| M["POST/GET/DELETE /api/document"]
     
     E -->|Cerrar| N["🔐 Logout"]
-    N -->|API| O["POST /auth/logout"]
+    N -->|API| O["POST /api/auth/logout"]
     O -->|Limpiar| P["🗑️ Sesión"]
     
     style A fill:#e1f5ff
@@ -769,7 +769,7 @@ graph LR
     A["🔐 Token Manager"] -->|Check Expiry| B{Expirado?}
     B -->|No| C["✅ Usar Token"]
     B -->|Sí| D["🔄 Refresh Token"]
-    D -->|POST /auth/refresh| E["🔗 API"]
+    D -->|POST /api/auth/refresh| E["🔗 API"]
     E -->|Nueva Token| F["💾 DataStore"]
     F -->|Guardar| G["✅ Usar Token"]
     C --> H["📡 API Call"]
