@@ -12,6 +12,8 @@ Documento que detalla el flujo de todas las llamadas a la API del backend para l
 | Refresh Token | Cookie httpOnly (automático) | JSON response (manual) |
 | Device ID | UUID en localStorage | ID nativo del dispositivo |
 | Credenciales | `credentials: 'include'` | Header manual |
+| Almacenamiento | localStorage | DataStore + Room |
+| Refresh Flow | Cookie enviada automáticamente | Body con refreshToken |
 
 ---
 
@@ -43,7 +45,7 @@ function getDeviceId() {
 ## 1. Flujo de Autenticación (Login)
 
 ### Descripción General
-El usuario inicia sesión con sus credenciales. A diferencia de mobile, el refresh token se almacena automáticamente en una cookie httpOnly (más seguro contra XSS).
+El usuario inicia sesión con sus credenciales (email y contraseña). A diferencia de mobile, el refresh token se almacena automáticamente en una cookie httpOnly (más seguro contra XSS) y NO se devuelve en el JSON.
 
 ### Diagrama de Secuencia
 
@@ -60,13 +62,13 @@ sequenceDiagram
     App->>API: POST /api/auth/login<br/>X-Client-Type: web<br/>credentials: include<br/>{email, password, deviceId}
     activate API
     API->>API: Validar credenciales
-    API->>API: Generar Access Token (1h)
+    API->>API: Generar JWT Token (1h)
     API->>API: Generar Refresh Token (3d)
     API->>Cookie: Set-Cookie: refreshToken (httpOnly, secure)
     API-->>App: 200 {accessToken, user}
     deactivate API
 
-    Note over App,Cookie: El refreshToken NO viene en el JSON,<br/>se guarda automáticamente en cookie
+    Note over App,Cookie: El refreshToken NO viene en el JSON<br/>Se guarda automáticamente en cookie httpOnly
 
     App->>Storage: localStorage.setItem('accessToken', token)
     App->>Storage: localStorage.setItem('user', JSON.stringify(user))
@@ -74,13 +76,13 @@ sequenceDiagram
     App-->>User: Login Exitoso - Redirect a Home
 ```
 
-### Tabla de Detalles
+### Tabla de Detalles de Endpoints
 
-| Endpoint | Método | Headers Requeridos |
-|----------|--------|-------------------|
-| `POST /api/auth/login` | POST | `Content-Type: application/json`<br/>`X-Client-Type: web` |
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `POST /api/auth/login` | POST | Login con email y contraseña |
 
-### Request Body
+### Parámetros de Entrada
 ```json
 {
   "email": "usuario@ejemplo.com",
@@ -89,8 +91,9 @@ sequenceDiagram
 }
 ```
 
-### Response 200
+### Respuestas
 ```json
+// Response 200 (Web)
 {
   "message": "Login successful",
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -102,88 +105,20 @@ sequenceDiagram
     "role": "user"
   }
 }
+// Nota: refreshToken viene en Set-Cookie header, NO en JSON
 ```
 
-**Nota:** El `refreshToken` NO viene en el JSON para web, se establece automáticamente como cookie httpOnly.
+### Manejo de Errores
+- **401 Unauthorized**: Usuario o contraseña incorrectos
+- **400 Bad Request**: Parámetros inválidos
+- **500 Server Error**: Error interno del servidor
 
 ---
 
-## 2. Flujo de Refresh Token
+## 2. Flujo de Creación de Usuario (Registro)
 
 ### Descripción General
-El refresh token se maneja automáticamente via cookies httpOnly:
-- El navegador lo envía automáticamente con `credentials: 'include'`
-- No es accesible desde JavaScript (protección contra XSS)
-- Se renueva automáticamente en cada refresh
-
-### Diagrama de Secuencia
-
-```mermaid
-sequenceDiagram
-    participant App as App Web
-    participant API as API Backend
-    participant Cookie as Cookie (httpOnly)
-    participant Storage as localStorage
-
-    Note over App: Access Token expirado (401)
-
-    App->>API: POST /api/auth/refresh<br/>X-Client-Type: web<br/>Authorization: Bearer oldToken<br/>Cookie: refreshToken (automático)
-    activate API
-    API->>API: Validar refresh token de cookie
-    API->>API: Generar nuevo Access Token
-    API->>API: Generar nuevo Refresh Token
-    API->>Cookie: Set-Cookie: refreshToken (nuevo)
-    API-->>App: 200 {accessToken}
-    deactivate API
-
-    App->>Storage: localStorage.setItem('accessToken', newToken)
-    App->>App: Reintentar request original
-```
-
-### Tabla de Detalles
-
-| Endpoint | Método | Headers Requeridos |
-|----------|--------|-------------------|
-| `POST /api/auth/refresh` | POST | `Content-Type: application/json`<br/>`X-Client-Type: web`<br/>`Authorization: Bearer <token>` |
-
-### Response 200
-```json
-{
-  "message": "Token refreshed successfully",
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
----
-
-## 3. Flujo de Logout
-
-### Diagrama de Secuencia
-
-```mermaid
-sequenceDiagram
-    participant User as Usuario
-    participant App as App Web
-    participant API as API Backend
-    participant Storage as localStorage
-    participant Cookie as Cookie
-
-    User->>App: Click en Logout
-    App->>API: POST /api/auth/logout<br/>Authorization: Bearer token<br/>Cookie: refreshToken (automático)
-    activate API
-    API->>API: Revocar refresh token en BD
-    API->>Cookie: Clear-Cookie: refreshToken
-    API-->>App: 200 {message: "Sesión cerrada exitosamente"}
-    deactivate API
-
-    App->>Storage: localStorage.removeItem('accessToken')
-    App->>Storage: localStorage.removeItem('user')
-    App-->>User: Redirect a Login
-```
-
----
-
-## 4. Flujo de Registro
+Un nuevo usuario se registra proporcionando sus datos personales. A diferencia de mobile, el registro NO hace auto-login, solo crea la cuenta.
 
 ### Diagrama de Secuencia
 
@@ -208,75 +143,45 @@ sequenceDiagram
     App->>App: Redirect a Login
 ```
 
-### Request Body
+### Tabla de Detalles de Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `POST /api/user` | POST | Registra un nuevo usuario |
+
+### Parámetros de Entrada
 ```json
 {
   "email": "nuevo@ejemplo.com",
   "names": "María",
   "lastnames": "García López",
-  "password": "contraseña123",
-  "phoneNumber": "12345678",
   "phoneCode": "+502",
+  "phoneNumber": "12345678",
+  "password": "contraseña123",
   "birthdate": "2000-05-15"
 }
 ```
 
----
-
-## 5. Flujo de Recuperación de Contraseña
-
-### Diagrama de Secuencia
-
-```mermaid
-sequenceDiagram
-    participant User as Usuario
-    participant App as App Web
-    participant API as API Backend
-    participant Email as Servicio Email
-
-    User->>App: Ingresa email
-    App->>API: POST /api/auth/sendRecovery<br/>{email}
-    activate API
-    API->>API: Buscar usuario
-    API->>API: Generar código 6 dígitos
-    API->>Email: Enviar código
-    Email-->>User: Email con código
-    API-->>App: 200 {message: "Si el correo existe..."}
-    deactivate API
-
-    User->>App: Ingresa código recibido
-    App->>API: POST /api/auth/verifyCode<br/>{email, code}
-    activate API
-    API->>API: Validar código (15 min)
-    API->>API: Generar recovery token
-    API-->>App: 200 {token, expiresAt, message}
-    deactivate API
-
-    App->>App: Guardar recovery token (sessionStorage)
-
-    User->>App: Ingresa nueva contraseña
-    App->>API: POST /api/auth/recoverPassword<br/>Authorization: Bearer recoveryToken<br/>{password}
-    activate API
-    API->>API: Validar recovery token
-    API->>API: Hash nueva contraseña
-    API->>API: Actualizar en BD
-    API-->>App: 200 {message: "Contraseña actualizada"}
-    deactivate API
-
-    App-->>User: Éxito - Redirect a Login
+### Respuestas
+```json
+// Response 201
+{
+  "message": "Usuario creado exitosamente",
+  "userId": 2
+}
 ```
 
-### Tabla de Detalles
-
-| Paso | Endpoint | Método |
-|------|----------|--------|
-| 1. Solicitar código | `POST /api/auth/sendRecovery` | POST |
-| 2. Verificar código | `POST /api/auth/verifyCode` | POST |
-| 3. Nueva contraseña | `POST /api/auth/recoverPassword` | POST |
+### Manejo de Errores
+- **409 Conflict**: Email ya registrado
+- **400 Bad Request**: Datos inválidos
+- **500 Server Error**: Error interno del servidor
 
 ---
 
-## 6. Flujo de Creación de Chats
+## 3. Flujo de Creación de Chats
+
+### Descripción General
+El usuario crea un nuevo chat para iniciar una conversación. En web, el refresh token se maneja automáticamente via cookies.
 
 ### Diagrama de Secuencia
 
@@ -285,35 +190,51 @@ sequenceDiagram
     participant User as Usuario
     participant App as App Web
     participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
     User->>App: Crea nuevo chat
 
-    alt Token válido
-        App->>API: POST /api/chat<br/>Authorization: Bearer token<br/>{name: "Nombre del chat"}
-    else Token expirado
-        App->>API: POST /api/auth/refresh
-        API-->>App: 200 {accessToken}
-        App->>API: POST /api/chat<br/>Authorization: Bearer newToken<br/>{name: "Nombre del chat"}
-    end
-
+    App->>API: POST /api/chat<br/>Authorization: Bearer token<br/>credentials: include<br/>{name: "Nombre del chat"}
     activate API
-    API->>API: Validar token
-    API->>API: Crear chat en BD
-    API-->>App: 201 {message, chat}
+
+    alt Token válido
+        API->>API: Validar token
+        API->>API: Crear chat en BD
+        API-->>App: 201 {message, chat}
+    else Token expirado (401)
+        API-->>App: 401 Unauthorized
+        App->>API: POST /api/auth/refresh<br/>X-Client-Type: web<br/>Cookie: refreshToken (automático)
+        API->>API: Validar refresh token de cookie
+        API->>API: Generar nuevo Access Token
+        API->>Cookie: Set-Cookie: refreshToken (nuevo)
+        API-->>App: 200 {accessToken}
+        App->>Storage: localStorage.setItem('accessToken', newToken)
+        App->>API: POST /api/chat (retry)<br/>Authorization: Bearer newToken
+        API-->>App: 201 {message, chat}
+    end
     deactivate API
 
-    App-->>User: Chat creado - Abrir conversación
+    App-->>User: Chat creado
 ```
 
-### Request Body
+### Tabla de Detalles de Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `POST /api/auth/refresh` | POST | Refresca el JWT token (si expira) |
+| `POST /api/chat` | POST | Crea un nuevo chat |
+
+### Parámetros de Entrada
 ```json
 {
   "name": "Consulta sobre trámites"
 }
 ```
 
-### Response 201
+### Respuestas
 ```json
+// Response 201
 {
   "message": "Chat creado exitosamente",
   "chat": {
@@ -325,9 +246,17 @@ sequenceDiagram
 }
 ```
 
+### Manejo de Errores
+- **401 Unauthorized**: Token inválido o expirado (intentar refresh)
+- **400 Bad Request**: Datos inválidos
+- **500 Server Error**: Error interno del servidor
+
 ---
 
-## 7. Flujo de Obtener Chats
+## 4. Flujo de Seguimiento de Chats (Obtener Chats)
+
+### Descripción General
+El usuario obtiene la lista de todos sus chats con paginación.
 
 ### Diagrama de Secuencia
 
@@ -336,28 +265,48 @@ sequenceDiagram
     participant User as Usuario
     participant App as App Web
     participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
     User->>App: Visualiza lista de chats
 
-    App->>API: GET /api/chat?page=1<br/>Authorization: Bearer token
+    App->>API: GET /api/chat?page=1<br/>Authorization: Bearer token<br/>credentials: include
     activate API
-    API->>API: Validar token
-    API->>API: Obtener chats del usuario
-    API-->>App: 200 {chats, currentPage, totalPages, totalChats}
+
+    alt Token válido
+        API->>API: Validar token
+        API->>API: Obtener chats del usuario
+        API-->>App: 200 {chats, currentPage, totalPages, totalChats}
+    else Token expirado (401)
+        API-->>App: 401 Unauthorized
+        App->>API: POST /api/auth/refresh<br/>Cookie: refreshToken (automático)
+        API-->>App: 200 {accessToken}
+        App->>Storage: localStorage.setItem('accessToken', newToken)
+        App->>API: GET /api/chat?page=1 (retry)
+        API-->>App: 200 {chats...}
+    end
     deactivate API
 
     App-->>User: Lista de chats actualizada
 
-    opt Cargar más (scroll infinito)
-        User->>App: Scroll al final
-        App->>API: GET /api/chat?page=2<br/>Authorization: Bearer token
+    opt Cargar más (paginación)
+        User->>App: Scroll / Click "Cargar más"
+        App->>API: GET /api/chat?page=2
         API-->>App: 200 {chats...}
         App-->>User: Más chats cargados
     end
 ```
 
-### Response 200
+### Tabla de Detalles de Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `POST /api/auth/refresh` | POST | Refresca el JWT token (si expira) |
+| `GET /api/chat` | GET | Obtiene chats del usuario |
+
+### Respuestas
 ```json
+// Response 200
 {
   "chats": [
     {
@@ -376,26 +325,41 @@ sequenceDiagram
 }
 ```
 
+### Manejo de Errores
+- **401 Unauthorized**: Token inválido o expirado
+- **500 Server Error**: Error interno del servidor
+
 ---
 
-## 8. Flujo de Mensajes en Chats
+## 5. Flujo de Mensajes en Chats
 
-### 8.1 Obtener Mensajes de un Chat
+### 5.1 Obtener Mensajes de un Chat
 
 ```mermaid
 sequenceDiagram
     participant User as Usuario
     participant App as App Web
     participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
     User->>App: Abre un chat
 
-    App->>API: GET /api/message/{chatId}?page=1<br/>Authorization: Bearer token
+    App->>API: GET /api/message/{chatId}?page=1<br/>Authorization: Bearer token<br/>credentials: include
     activate API
-    API->>API: Validar token
-    API->>API: Verificar acceso al chat
-    API->>API: Obtener mensajes con paginación
-    API-->>App: 200 {messages, currentPage, totalPages, totalMessages}
+
+    alt Token válido
+        API->>API: Validar token
+        API->>API: Obtener mensajes con paginación
+        API-->>App: 200 {messages, currentPage, totalPages, totalMessages}
+    else Token expirado (401)
+        API-->>App: 401 Unauthorized
+        App->>API: POST /api/auth/refresh<br/>Cookie: refreshToken (automático)
+        API-->>App: 200 {accessToken}
+        App->>Storage: localStorage.setItem('accessToken', newToken)
+        App->>API: GET /api/message/{chatId}?page=1 (retry)
+        API-->>App: 200 {messages...}
+    end
     deactivate API
 
     App-->>User: Mensajes cargados
@@ -408,33 +372,46 @@ sequenceDiagram
     end
 ```
 
-### 8.2 Crear Mensaje en Chat
+### 5.2 Crear Mensaje en Chat
 
 ```mermaid
 sequenceDiagram
     participant User as Usuario
     participant App as App Web
     participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
     User->>App: Escribe y envía mensaje
 
     alt ChatId existe
-        App->>API: POST /api/message/{chatId}<br/>Authorization: Bearer token<br/>{content: "Texto del mensaje"}
-    else ChatId no existe (nuevo chat)
-        App->>API: POST /api/message<br/>Authorization: Bearer token<br/>{content: "Texto del mensaje"}
+        App->>API: POST /api/message/{chatId}<br/>Authorization: Bearer token<br/>credentials: include<br/>{content: "Texto del mensaje"}
+    else ChatId no existe
+        App->>API: POST /api/message<br/>Authorization: Bearer token<br/>credentials: include<br/>{content: "Texto del mensaje"}
     end
 
     activate API
-    API->>API: Validar token
-    API->>API: Crear mensaje en BD
-    API-->>App: 201 {message, messageId}
+
+    alt Token válido
+        API->>API: Validar token
+        API->>API: Crear mensaje
+        API->>API: Guardar en BD
+        API-->>App: 201 {message, messageId}
+    else Token expirado (401)
+        API-->>App: 401 Unauthorized
+        App->>API: POST /api/auth/refresh<br/>Cookie: refreshToken (automático)
+        API-->>App: 200 {accessToken}
+        App->>Storage: localStorage.setItem('accessToken', newToken)
+        App->>API: POST /api/message/{chatId} (retry)
+        API-->>App: 201 {message, messageId}
+    end
     deactivate API
 
     App->>App: Mostrar mensaje en UI
     App-->>User: Mensaje enviado
 ```
 
-### 8.3 Obtener Respuesta de IA
+### 5.3 Obtener Respuesta de IA (Message Response)
 
 ```mermaid
 sequenceDiagram
@@ -442,28 +419,40 @@ sequenceDiagram
     participant App as App Web
     participant API as API Backend
     participant AI as Servicio IA (Python)
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
     User->>App: Envía pregunta
     App->>App: Mostrar mensaje del usuario
     App->>App: Mostrar indicador de carga
 
     alt ChatId existe
-        App->>API: GET /api/message/response/{chatId}?question=...<br/>Authorization: Bearer token
+        App->>API: GET /api/message/response/{chatId}?question=...<br/>Authorization: Bearer token<br/>credentials: include
     else ChatId no existe
-        App->>API: GET /api/message/response?question=...<br/>Authorization: Bearer token
+        App->>API: GET /api/message/response?question=...<br/>Authorization: Bearer token<br/>credentials: include
     end
 
     activate API
-    API->>API: Validar token
-    API->>API: Obtener historial y resumen del chat
-    API->>API: Calcular edad del usuario
-    API->>AI: Procesar pregunta con contexto
-    AI->>AI: Buscar en documentos (Pinecone)
-    AI->>AI: Generar respuesta (OpenAI)
-    AI-->>API: Respuesta generada
-    API->>API: Guardar mensaje del asistente
-    API->>API: Actualizar resumen del chat
-    API-->>App: 200 {response, reference, responseTime}
+
+    alt Token válido
+        API->>API: Validar token
+        API->>API: Obtener historial y resumen
+        API->>API: Calcular edad del usuario
+        API->>AI: Procesar pregunta con documentos
+        AI->>AI: Buscar en Pinecone
+        AI->>AI: Generar respuesta (OpenAI)
+        AI-->>API: Respuesta generada
+        API->>API: Guardar mensaje del asistente
+        API->>API: Actualizar resumen del chat
+        API-->>App: 200 {response, reference, responseTime}
+    else Token expirado (401)
+        API-->>App: 401 Unauthorized
+        App->>API: POST /api/auth/refresh<br/>Cookie: refreshToken (automático)
+        API-->>App: 200 {accessToken}
+        App->>Storage: localStorage.setItem('accessToken', newToken)
+        App->>API: GET /api/message/response/... (retry)
+        API-->>App: 200 {response...}
+    end
     deactivate API
 
     App->>App: Ocultar indicador de carga
@@ -471,57 +460,96 @@ sequenceDiagram
     App-->>User: Conversación actualizada
 ```
 
-### 8.4 Asignar Mensaje a Chat
+### Tabla de Detalles de Endpoints
 
-```mermaid
-sequenceDiagram
-    participant App as App Web
-    participant API as API Backend
+| Endpoint | Método | Descripción | Parámetros |
+|----------|--------|-------------|-----------|
+| `GET /api/message/{chatId}` | GET | Obtiene mensajes del chat | `page` |
+| `POST /api/message/{chatId}` | POST | Crea mensaje en chat existente | Body: `{content}` |
+| `POST /api/message` | POST | Crea mensaje sin chat asignado | Body: `{content}` |
+| `GET /api/message/response/{chatId}` | GET | Obtiene respuesta IA para chat | `question` (query param) |
+| `GET /api/message/response` | GET | Obtiene respuesta IA sin chat | `question` (query param) |
+| `PUT /api/message/{messageId}/{chatId}` | PUT | Asigna mensaje a chat | - |
 
-    Note over App: Mensaje creado sin chatId<br/>Usuario decide guardar en chat
-
-    App->>API: PUT /api/message/{messageId}/{chatId}<br/>Authorization: Bearer token
-    activate API
-    API->>API: Validar token
-    API->>API: Verificar propiedad del mensaje
-    API->>API: Asignar mensaje al chat
-    API-->>App: 200 {message: "Mensaje asignado exitosamente"}
-    deactivate API
+### Parámetros de Entrada
+```json
+{
+  "content": "¿Cómo solicito mi DPI?"
+}
 ```
 
-### Tabla de Detalles de Endpoints de Mensajes
+### Respuestas
+```json
+// GetChatMessagesResponse
+{
+  "messages": [
+    {
+      "messageId": 42,
+      "chatId": 5,
+      "source": "user",
+      "content": "¿Cómo solicito mi DPI?",
+      "timestamp": "2026-01-12T10:45:00.000Z",
+      "reference": null,
+      "responseTime": null
+    }
+  ],
+  "currentPage": 1,
+  "totalPages": 2,
+  "totalMessages": 35
+}
 
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `GET /api/message/{chatId}` | GET | Obtiene mensajes del chat (paginado) |
-| `POST /api/message/{chatId}` | POST | Crea mensaje en chat existente |
-| `POST /api/message` | POST | Crea mensaje sin chat asignado |
-| `GET /api/message/response/{chatId}` | GET | Obtiene respuesta IA para chat |
-| `GET /api/message/response` | GET | Obtiene respuesta IA sin chat |
-| `PUT /api/message/{messageId}/{chatId}` | PUT | Asigna mensaje a chat |
+// NewMessageResponse
+{
+  "message": "Mensaje creado exitosamente",
+  "messageId": 42
+}
+
+// AI Response
+{
+  "response": "Para solicitar tu DPI debes...",
+  "reference": "Documento: Guía de trámites DPI",
+  "responseTime": 2450
+}
+```
 
 ---
 
-## 9. Flujo de Documentos (Solo Admin)
+## 6. Flujo de Documentos (Solo Admin)
 
-### 9.1 Obtener Documentos
+### 6.1 Obtener Documentos
 
 ```mermaid
 sequenceDiagram
     participant Admin as Admin Web
     participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
-    Admin->>API: GET /api/document<br/>Authorization: Bearer token
+    Admin->>API: GET /api/document<br/>Authorization: Bearer token<br/>credentials: include
     activate API
-    API->>API: Validar token
-    API->>API: Verificar rol admin
-    API->>API: Obtener documentos
-    API->>API: Generar URLs presignadas (1h)
-    API-->>Admin: 200 {documents}
+
+    alt Token válido y rol admin
+        API->>API: Validar token
+        API->>API: Verificar rol admin
+        API->>API: Obtener documentos
+        API->>API: Generar URLs presignadas (1h)
+        API-->>Admin: 200 {documents}
+    else Token expirado (401)
+        API-->>Admin: 401 Unauthorized
+        Admin->>API: POST /api/auth/refresh<br/>Cookie: refreshToken (automático)
+        API-->>Admin: 200 {accessToken}
+        Admin->>Storage: localStorage.setItem('accessToken', newToken)
+        Admin->>API: GET /api/document (retry)
+        API-->>Admin: 200 {documents}
+    else No es admin (403)
+        API-->>Admin: 403 Forbidden
+    end
     deactivate API
+
+    Admin-->>Admin: Lista de documentos
 ```
 
-### 9.2 Subir Documento
+### 6.2 Subir Documento
 
 ```mermaid
 sequenceDiagram
@@ -530,12 +558,26 @@ sequenceDiagram
     participant S3 as AWS S3
     participant Python as Servicio Python
     participant Email as Servicio Email
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
-    Admin->>API: POST /api/document<br/>Content-Type: multipart/form-data<br/>{file, title, author, year, minAge, maxAge}
+    Admin->>Admin: Selecciona archivo y completa metadata
+
+    Admin->>API: POST /api/document<br/>Authorization: Bearer token<br/>credentials: include<br/>Content-Type: multipart/form-data<br/>{file, title, author, year, minAge, maxAge}
     activate API
-    API->>API: Validar token y rol admin
-    API->>S3: Subir archivo
-    API-->>Admin: 202 {message: "Documento aceptado para procesamiento"}
+
+    alt Token válido y rol admin
+        API->>API: Validar token y rol admin
+        API->>S3: Subir archivo
+        API-->>Admin: 202 {message: "Documento aceptado para procesamiento"}
+    else Token expirado (401)
+        API-->>Admin: 401 Unauthorized
+        Admin->>API: POST /api/auth/refresh
+        API-->>Admin: 200 {accessToken}
+        Admin->>Storage: localStorage.setItem('accessToken', newToken)
+        Admin->>API: POST /api/document (retry)
+        API-->>Admin: 202 {message...}
+    end
     deactivate API
 
     Note over API,Python: Procesamiento asíncrono
@@ -551,7 +593,7 @@ sequenceDiagram
     Email-->>Admin: Email de confirmación
 ```
 
-### 9.3 Eliminar Documento
+### 6.3 Eliminar Documento
 
 ```mermaid
 sequenceDiagram
@@ -560,11 +602,23 @@ sequenceDiagram
     participant S3 as AWS S3
     participant Pinecone as Pinecone
     participant Email as Servicio Email
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
 
-    Admin->>API: DELETE /api/document/{documentId}<br/>Authorization: Bearer token
+    Admin->>API: DELETE /api/document/{documentId}<br/>Authorization: Bearer token<br/>credentials: include
     activate API
-    API->>API: Validar token y rol admin
-    API-->>Admin: 202 {message: "Documento eliminado. Se notificará por correo."}
+
+    alt Token válido y rol admin
+        API->>API: Validar token y rol admin
+        API-->>Admin: 202 {message: "Documento eliminado. Se notificará por correo."}
+    else Token expirado (401)
+        API-->>Admin: 401 Unauthorized
+        Admin->>API: POST /api/auth/refresh
+        API-->>Admin: 200 {accessToken}
+        Admin->>Storage: localStorage.setItem('accessToken', newToken)
+        Admin->>API: DELETE /api/document/{documentId} (retry)
+        API-->>Admin: 202 {message...}
+    end
     deactivate API
 
     Note over API,Pinecone: Eliminación asíncrona
@@ -575,6 +629,155 @@ sequenceDiagram
 
     API->>Email: Notificar al admin
     Email-->>Admin: Email de confirmación
+```
+
+### Tabla de Detalles de Endpoints
+
+| Endpoint | Método | Descripción | Content-Type |
+|----------|--------|-------------|--------------|
+| `GET /api/document` | GET | Obtiene documentos (admin) | JSON |
+| `POST /api/document` | POST | Carga nuevo documento (admin) | Multipart/form-data |
+| `DELETE /api/document/{documentId}` | DELETE | Elimina documento (admin) | JSON |
+
+---
+
+## 7. Flujo de Refresco de Token (Token Refresh)
+
+### Descripción General
+En web, el refresh token se maneja automáticamente via cookies httpOnly. El navegador envía la cookie automáticamente con `credentials: 'include'`.
+
+### Diagrama de Secuencia
+
+```mermaid
+sequenceDiagram
+    participant App as App Web
+    participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie (httpOnly)
+
+    Note over App: Request falla con 401
+
+    App->>API: POST /api/auth/refresh<br/>X-Client-Type: web<br/>Authorization: Bearer oldToken<br/>credentials: include<br/>(Cookie refreshToken enviada automáticamente)
+    activate API
+
+    alt Refresh Token válido
+        API->>API: Validar refresh token de cookie
+        API->>API: Generar nuevo Access Token
+        API->>API: Generar nuevo Refresh Token
+        API->>Cookie: Set-Cookie: refreshToken (nuevo)
+        API-->>App: 200 {accessToken}
+        App->>Storage: localStorage.setItem('accessToken', newToken)
+        App->>App: Reintentar request original
+    else Refresh Token inválido/expirado
+        API-->>App: 401 Unauthorized
+        App->>Storage: localStorage.clear()
+        App->>App: Redirect a Login
+    end
+    deactivate API
+```
+
+### Diferencia con Mobile
+
+| Aspecto | Web | Mobile |
+|---------|-----|--------|
+| Envío de refresh token | Cookie (automático) | Body `{refreshToken}` (manual) |
+| Recepción de nuevo refresh | Set-Cookie (automático) | JSON response (guardar manual) |
+| Almacenamiento | Cookie httpOnly (no accesible JS) | DataStore (accesible) |
+
+---
+
+## 8. Flujo de Recuperación de Contraseña
+
+### Descripción General
+Usuario olvida su contraseña. Se envía un código de verificación por email, se valida, y se establece una nueva contraseña.
+
+### Diagrama de Secuencia
+
+```mermaid
+sequenceDiagram
+    participant User as Usuario
+    participant App as App Web
+    participant API as API Backend
+    participant Email as Servicio Email
+
+    User->>App: Ingresa email
+    App->>API: POST /api/auth/sendRecovery<br/>{email}
+    activate API
+    API->>API: Buscar usuario
+    API->>API: Generar código 6 dígitos
+    API->>Email: Enviar código de verificación
+    Email-->>User: Email con código
+    API-->>App: 200 {message: "Si el correo existe..."}
+    deactivate API
+
+    User->>App: Ingresa código del email
+    App->>API: POST /api/auth/verifyCode<br/>{email, code}
+    activate API
+    API->>API: Validar código (15 min)
+    API->>API: Generar token de recuperación
+    API-->>App: 200 {message, token, expiresAt}
+    deactivate API
+
+    App->>App: Guardar recovery token (sessionStorage)
+
+    User->>App: Ingresa nueva contraseña
+    App->>API: POST /api/auth/recoverPassword<br/>Authorization: Bearer recoveryToken<br/>{password}
+    activate API
+    API->>API: Validar token de recuperación
+    API->>API: Hash nueva contraseña
+    API->>API: Actualizar contraseña en BD
+    API-->>App: 200 {message: "Contraseña actualizada"}
+    deactivate API
+
+    App->>App: sessionStorage.removeItem('recoveryToken')
+    App-->>User: Contraseña recuperada - Redirect a Login
+```
+
+### Tabla de Detalles de Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `POST /api/auth/sendRecovery` | POST | Envía código de verificación |
+| `POST /api/auth/verifyCode` | POST | Valida código y obtiene token de recuperación |
+| `POST /api/auth/recoverPassword` | POST | Establece nueva contraseña |
+
+### Parámetros de Entrada
+```json
+// Send Recovery
+{ "email": "usuario@ejemplo.com" }
+
+// Verify Code
+{ "email": "usuario@ejemplo.com", "code": "123456" }
+
+// Recover Password
+{ "password": "nueva_contraseña_segura" }
+```
+
+---
+
+## 9. Flujo de Logout
+
+### Diagrama de Secuencia
+
+```mermaid
+sequenceDiagram
+    participant User as Usuario
+    participant App as App Web
+    participant API as API Backend
+    participant Storage as localStorage
+    participant Cookie as Cookie
+
+    User->>App: Click en Logout
+    App->>API: POST /api/auth/logout<br/>Authorization: Bearer token<br/>credentials: include<br/>(Cookie refreshToken enviada automáticamente)
+    activate API
+    API->>API: Revocar refresh token en BD
+    API->>Cookie: Clear-Cookie: refreshToken
+    API-->>App: 200 {message: "Sesión cerrada exitosamente"}
+    deactivate API
+
+    App->>Storage: localStorage.removeItem('accessToken')
+    App->>Storage: localStorage.removeItem('user')
+    App-->>User: Redirect a Login
 ```
 
 ---
@@ -611,7 +814,8 @@ sequenceDiagram
 1. **Siempre usar `credentials: 'include'`** en todas las requests para que el navegador envíe/reciba cookies
 2. **El refreshToken nunca es accesible desde JavaScript** - está en una cookie httpOnly
 3. **Manejar 401 automáticamente** - intentar refresh antes de redirigir a login
-4. **deviceId en localStorage** - se pierde en incógnito o al limpiar datos
+4. **Header `X-Client-Type: web`** - indica al servidor que use cookies para refresh token
+5. **deviceId en localStorage** - se pierde en incógnito o al limpiar datos
 
 ---
 
