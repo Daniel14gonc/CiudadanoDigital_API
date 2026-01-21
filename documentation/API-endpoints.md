@@ -10,7 +10,49 @@ Todos los endpoints protegidos requieren un Access Token en el header:
 Authorization: Bearer <access_token>
 ```
 
-### Manejo del `deviceId`
+### POST `/api/auth/login`
+
+Iniciar sesión y obtener tokens de autenticación.
+
+**Headers:**
+```
+Content-Type: application/json
+X-Client-Type: web | mobile
+```
+
+**Request Body:**
+```json
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña123",
+  "deviceId": "identificador_del_dispositivo"
+}
+```
+
+**Response 200:**
+```json
+{
+  "message": "Login successful",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "uuid-refresh-token",  // Solo para mobile
+  "user": {
+    "userId": 1,
+    "email": "usuario@ejemplo.com",
+    "names": "Juan",
+    "lastnames": "Pérez",
+    "role": "user"
+  }
+}
+```
+
+- **Web**: El refreshToken se envía como cookie httpOnly
+- **Mobile**: El refreshToken se devuelve en el JSON
+
+**Errores:**
+- `400` - Credenciales inválidas
+- `401` - Email o contraseña incorrectos
+
+#### Manejo del `deviceId`
 
 El `deviceId` identifica de forma única el dispositivo o navegador del usuario, permitiendo gestionar múltiples sesiones simultáneas.
 
@@ -53,50 +95,6 @@ const response = await fetch('/api/auth/login', {
 - El `deviceId` se pierde si el usuario limpia el localStorage o usa modo incógnito
 - En modo incógnito se generará un nuevo `deviceId` por sesión
 - Si se requiere mayor persistencia, considerar librerías de fingerprinting como [FingerprintJS](https://fingerprint.com/)
-
----
-
-### POST `/api/auth/login`
-
-Iniciar sesión y obtener tokens de autenticación.
-
-**Headers:**
-```
-Content-Type: application/json
-X-Client-Type: web | mobile
-```
-
-**Request Body:**
-```json
-{
-  "email": "usuario@ejemplo.com",
-  "password": "contraseña123",
-  "deviceId": "identificador_del_dispositivo"
-}
-```
-
-**Response 200:**
-```json
-{
-  "message": "Login successful",
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "uuid-refresh-token",  // Solo para mobile
-  "user": {
-    "userId": 1,
-    "email": "usuario@ejemplo.com",
-    "names": "Juan",
-    "lastnames": "Pérez",
-    "role": "user"
-  }
-}
-```
-
-- **Web**: El refreshToken se envía como cookie httpOnly
-- **Mobile**: El refreshToken se devuelve en el JSON
-
-**Errores:**
-- `400` - Credenciales inválidas
-- `401` - Email o contraseña incorrectos
 
 ---
 
