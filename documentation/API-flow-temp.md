@@ -542,7 +542,7 @@ sequenceDiagram
     Web-->>User: 💬 Mensajes cargados
 ```
 
-### 8.2 Enviar Mensaje y Obtener Respuesta de IA (Creación Automática de Chat)
+### 8.2 Enviar Mensaje y Obtener Respuesta de IA
 
 ```mermaid
 sequenceDiagram
@@ -551,31 +551,55 @@ sequenceDiagram
     participant API as 🔗 API Backend
     participant AI as 🤖 IA Backend
 
-    User->>Web: Escribe pregunta y envía
+    User->>Web: Escribe mensaje y envía
     Web->>Web: refreshTokenSiNecesario()
     Web->>Web: Mostrar mensaje del usuario en UI
 
-    alt ChatId existe
-        Web->>API: GET /api/message/response/{chatId}?question=pregunta<br/>Header: Authorization: Bearer token
-    else ChatId no existe (nueva conversación)
-        Web->>API: GET /api/message/response?question=pregunta<br/>Header: Authorization: Bearer token
-    end
+    alt ChatId NO existe (nueva conversación)
+        Web->>API: POST /api/message<br/>Header: Authorization: Bearer token<br/>{content: "mensaje"}
+        activate API
+        API->>API: Validar token
+        API->>API: Crear mensaje sin chat
+        API-->>Web: 200 NewMessageResponse<br/>{message, chatMessage: {messageid, ...}}
+        deactivate API
+        Web->>Web: Almacenar messageId del usuario
 
-    activate API
-    API->>API: Validar token
-    API->>API: Guardar mensaje del usuario
-    API->>AI: Procesar pregunta con documentos
-    AI-->>API: Respuesta generada
-    API->>API: Guardar respuesta
-    API-->>Web: 200 NewResponse<br/>{message, newChat, chatMessage}
-    deactivate API
+        Web->>API: POST /api/message/response<br/>Header: Authorization: Bearer token<br/>{content: "mensaje"}
+        activate API
+        API->>API: Validar token
+        API->>AI: Procesar pregunta con documentos
+        AI-->>API: Respuesta generada
+        API->>API: Crear chat y guardar respuesta
+        API-->>Web: 200 NewResponse<br/>{chatMessage, chatId, newChat: true}
+        deactivate API
+
+        Web->>API: PUT /api/message/{messageId}/{chatId}<br/>Header: Authorization: Bearer token
+        activate API
+        API->>API: Asignar mensaje del usuario al chat
+        API-->>Web: 200 MessageDto
+        deactivate API
+
+        Web->>Web: Guardar chatId para próximos mensajes
+
+    else ChatId YA existe (chat existente)
+        Web->>API: POST /api/message/{chatId}<br/>Header: Authorization: Bearer token<br/>{content: "mensaje"}
+        activate API
+        API->>API: Validar token
+        API->>API: Guardar mensaje en el chat
+        API-->>Web: 200 NewMessageResponse<br/>{message, chatMessage}
+        deactivate API
+
+        Web->>API: GET /api/message/response/{chatId}<br/>Header: Authorization: Bearer token
+        activate API
+        API->>API: Validar token
+        API->>AI: Procesar pregunta con documentos
+        AI-->>API: Respuesta generada
+        API->>API: Guardar respuesta en el chat
+        API-->>Web: 200 NewResponse<br/>{chatMessage, chatId}
+        deactivate API
+    end
 
     Web-->>User: 🤖 Mostrar respuesta de IA
-
-    alt assigned == false (mensaje sin asignar)
-        Web->>API: PUT /api/message/{messageId}/{chatId}<br/>Header: Authorization: Bearer token
-        API-->>Web: 200 MessageDto
-    end
 ```
 
 ### 8.3 Crear Mensaje sin Respuesta de IA (opcional)
@@ -611,8 +635,8 @@ sequenceDiagram
 | `GET /api/message/{chatId}` | GET | Obtiene mensajes del chat | `limit`, `offset` (query) |
 | `POST /api/message/{chatId}` | POST | Crea mensaje en chat existente | Body: `{content}` |
 | `POST /api/message` | POST | Crea mensaje sin chat asignado | Body: `{content}` |
-| `GET /api/message/response/{chatId}` | GET | Obtiene respuesta IA en chat | `question` (query) |
-| `GET /api/message/response` | GET | Obtiene respuesta IA sin chat | `question` (query) |
+| `GET /api/message/response/{chatId}` | GET | Obtiene respuesta IA en chat existente | - |
+| `POST /api/message/response` | POST | Obtiene respuesta IA (nuevo chat) | Body: `{content}` |
 | `PUT /api/message/{messageId}/{chatId}` | PUT | Asigna mensaje a chat | - |
 
 ### Parámetros de Entrada
@@ -904,8 +928,8 @@ graph LR
 | POST | `/api/message/{chatId}` | Enviar mensaje a chat | ✅ |
 | POST | `/api/message` | Enviar mensaje (sin chat) | ✅ |
 | PUT | `/api/message/{msgId}/{chatId}` | Asignar mensaje a chat | ✅ |
-| GET | `/api/message/response/{chatId}` | Obtener respuesta IA | ✅ |
-| GET | `/api/message/response` | Obtener respuesta IA (nuevo) | ✅ |
+| GET | `/api/message/response/{chatId}` | Obtener respuesta IA (chat existente) | ✅ |
+| POST | `/api/message/response` | Obtener respuesta IA (nuevo chat) | ✅ |
 | GET | `/api/document` | Listar documentos | ✅ |
 | POST | `/api/document` | Subir documento | ✅ (admin) |
 | DELETE | `/api/document/{docId}` | Eliminar documento | ✅ (admin) |
