@@ -13,8 +13,8 @@ export async function up(pgm) {
   const passwordHash = await bcrypt.hash(adminPassword, salt)
 
   pgm.sql(`
-    INSERT INTO Usuario (email, names, lastnames, password, role)
-    VALUES ('${adminEmail}', 'Admin', 'User', '${passwordHash}', 'admin')
+    INSERT INTO Usuario (email, names, lastnames, birthdate, phoneCode, phoneNumber, password, role)
+    VALUES ('${adminEmail}', 'Admin', 'User', '2000-01-01', '502', '00000000', '${passwordHash}', 'admin')
     ON CONFLICT (email) DO NOTHING;
   `)
 }
