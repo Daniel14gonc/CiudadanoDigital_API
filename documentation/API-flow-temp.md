@@ -602,32 +602,6 @@ sequenceDiagram
     Web-->>User: 🤖 Mostrar respuesta de IA
 ```
 
-### 8.3 Crear Mensaje sin Respuesta de IA (opcional)
-
-```mermaid
-sequenceDiagram
-    participant User as 👤 Usuario
-    participant Web as 🌐 App Web
-    participant API as 🔗 API Backend
-
-    User->>Web: Envía mensaje
-    Web->>Web: refreshTokenSiNecesario()
-
-    alt ChatId existe
-        Web->>API: POST /api/message/{chatId}<br/>Header: Authorization: Bearer token<br/>{content: "mensaje"}
-    else ChatId no existe
-        Web->>API: POST /api/message<br/>Header: Authorization: Bearer token<br/>{content: "mensaje"}
-    end
-
-    activate API
-    API->>API: Validar token
-    API->>API: Crear mensaje
-    API-->>Web: 200 NewMessageResponse<br/>{message, chatMessage}
-    deactivate API
-
-    Web-->>User: ✅ Mensaje enviado
-```
-
 ### Tabla de Detalles de Endpoints
 
 | Endpoint | Método | Descripción | Parámetros |
