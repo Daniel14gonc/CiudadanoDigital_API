@@ -260,7 +260,7 @@ resource "aws_db_subnet_group" "db_subnet_group" {
 
 resource "aws_db_instance" "comp_digital_db" {
   identifier             = "comp-digital-db"
-  instance_class         = "db.t4g.micro"
+  instance_class         = "db.t4g.small"
   engine                 = "postgres"
   engine_version         = "17.6"
   username               = var.database_username
@@ -269,7 +269,7 @@ resource "aws_db_instance" "comp_digital_db" {
   vpc_security_group_ids = [aws_security_group.comp_digital_db_sg.id]
   publicly_accessible    = false
   skip_final_snapshot    = true
-  allocated_storage      = 20
+  allocated_storage      = 50
 }
 
 resource "aws_ssm_parameter" "database_url" {

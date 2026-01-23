@@ -7,7 +7,7 @@ variable "aws_region" {
 
 variable "instance_type" {
   type    = string
-  default = "m7i-flex.large"
+  default = "t4g.large"
 }
 
 variable "bucket_name" {
