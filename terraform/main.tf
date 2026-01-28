@@ -260,7 +260,7 @@ resource "aws_db_subnet_group" "db_subnet_group" {
 
 resource "aws_db_instance" "comp_digital_db" {
   identifier             = "comp-digital-db"
-  instance_class         = "db.t4g.small"
+  instance_class         = "db.t4g.micro"
   engine                 = "postgres"
   engine_version         = "17.6"
   username               = var.database_username
