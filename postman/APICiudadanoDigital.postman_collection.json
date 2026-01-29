@@ -1,0 +1,1150 @@
+{
+	"info": {
+		"_postman_id": "14cd0675-25c2-4468-aef0-80e68a107ed3",
+		"name": "API Ciudadano Digital",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38870608",
+		"_collection_link": "https://mdt111.postman.co/workspace/My-Workspace~3589ef29-d905-43f9-8206-ab088a8410f6/collection/38870608-14cd0675-25c2-4468-aef0-80e68a107ed3?action=share&source=collection_link&creator=38870608"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"erickjrmunoz16@gmail.com\",\r\n    \"names\":\"Stiv\",\r\n    \"lastnames\":\"Guerra\",\r\n    \"phoneCode\":\"+502\",\r\n    \"phoneNumber\":\"59993108\",\r\n    \"password\":\"12345678\",\r\n    \"birthdate\":\"2002-01-22\",\r\n    \"deviceId\":\"0\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logged User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/logged",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"logged"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"phoneNumber\":\"20202020\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/33",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"33"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "LogIn",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-client-type",
+								"value": "mobile",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"deviceId\":\"0\",\r\n    \"email\":\"erickjrmunoz16@gmail.com\",\r\n    \"password\":\"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL_Local}}/auth/login",
+							"host": [
+								"{{baseURL_Local}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LogOut",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-client-type",
+								"value": "mobile",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "refreshToken",
+									"value": "{{REFRESH_TOKEN}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/logout",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-client-type",
+								"value": "mobile",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "refreshToken",
+									"value": "{{REFRESH_TOKEN}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/refresh",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Recovery Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-client-type",
+								"value": "mobile",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "erickjrmunoz12@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/sendRecovery",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"sendRecovery"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Recovery Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"RECOVER_TOKEN\", json.token);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-client-type",
+								"value": "mobile",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"erickjrmunoz12@gmail.com\",\r\n    \"code\":727841\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/verifyCode",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"verifyCode"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recover Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{RECOVER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-client-type",
+								"value": "mobile",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/recoverPassword",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"recoverPassword"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat",
+			"item": [
+				{
+					"name": "Create Chat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Chat2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/chat",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"chat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/chat",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"chat"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Document",
+			"item": [
+				{
+					"name": "Save Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "filename",
+									"value": "DOCUMENTO DE PRUEBA",
+									"type": "text"
+								},
+								{
+									"key": "author",
+									"value": "DOCUMENTO DE PRUEBA",
+									"type": "text"
+								},
+								{
+									"key": "year",
+									"value": "2025",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f0b9e8f-15ab-4410-9aa4-6610f1baab29"
+								},
+								{
+									"key": "minAge",
+									"value": "13",
+									"type": "text"
+								},
+								{
+									"key": "maxAge",
+									"value": "17",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL_Local}}/document",
+							"host": [
+								"{{baseURL_Local}}"
+							],
+							"path": [
+								"document"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/document/17",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"document",
+								"17"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Documents",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Chat2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/document",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"document"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Message",
+			"item": [
+				{
+					"name": "Create Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\":\"Hola!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL_Local}}/message/8",
+							"host": [
+								"{{baseURL_Local}}"
+							],
+							"path": [
+								"message",
+								"8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if response has format JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check if json has an access key\", function() {\r",
+									"    pm.response.to.have.jsonBody(\"token\");\r",
+									"    pm.response.to.have.jsonBody(\"refreshToken\");\r",
+									"\r",
+									"    var json = JSON.parse(responseBody);\r",
+									"    pm.collectionVariables.set(\"TOKEN_API\", json.token);\r",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", json.refreshToken);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/message/22/8",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"message",
+								"22",
+								"8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Response",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL_Local}}/message/response/?question=Quiero mejorar como ciudadano activo. ¿Cuáles son las competencias (conocimientos, valores y habilidades) más importantes que debo desarrollar para lograr una implicación activa en la sociedad?",
+							"host": [
+								"{{baseURL_Local}}"
+							],
+							"path": [
+								"message",
+								"response",
+								""
+							],
+							"query": [
+								{
+									"key": "question",
+									"value": "Quiero mejorar como ciudadano activo. ¿Cuáles son las competencias (conocimientos, valores y habilidades) más importantes que debo desarrollar para lograr una implicación activa en la sociedad?"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat Messages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN_API}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/message/100?limit=50",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"message",
+								"100"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "50"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Diagnosys",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}",
+					"host": [
+						"{{baseURL}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL_Local",
+			"value": ""
+		},
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "TOKEN_API",
+			"value": ""
+		},
+		{
+			"key": "REFRESH_TOKEN",
+			"value": ""
+		},
+		{
+			"key": "RECOVER_TOKEN",
+			"value": ""
+		}
+	]
+}
