@@ -159,7 +159,7 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_s3_bucket" "backend_bucket" {
-  bucket = var.bucket_name
+  bucket = var.backend_bucket_name
 
   tags = {
     Name = "comp-digital-backend"
@@ -180,7 +180,7 @@ resource "aws_iam_policy" "s3_backend_policy" {
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = "arn:aws:s3:::${var.bucket_name}/*"
+        Resource = "arn:aws:s3:::${var.backend_bucket_name}/*"
       }
     ]
   })

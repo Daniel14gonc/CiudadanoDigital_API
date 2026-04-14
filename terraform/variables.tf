@@ -10,9 +10,9 @@ variable "instance_type" {
   default = "m7i-flex.large"
 }
 
-variable "bucket_name" {
+variable "backend_bucket_name" {
   type    = string
-  default = "comp-digital-bucket-prueba"
+  description = "Backend bucket for Comp Digital"
 }
 
 variable "database_username" {
