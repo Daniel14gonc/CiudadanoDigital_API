@@ -15,17 +15,18 @@ jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
     env:
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
       TF_VAR_database_username: ${{ secrets.DATABASE_USERNAME }}
       TF_VAR_database_password: ${{ secrets.DATABASE_PASSWORD }}
-      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+      TF_VAR_backend_bucket_name: ${{ secrets.BACKEND_BUCKET_NAME }}
     steps:
       - uses: actions/checkout@v3
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/comp-digital-role
-          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ secrets.OIDC_ROLE_NAME }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2

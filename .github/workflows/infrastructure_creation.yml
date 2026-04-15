@@ -19,15 +19,13 @@ jobs:
       TF_VAR_database_username: ${{ secrets.DATABASE_USERNAME }}
       TF_VAR_database_password: ${{ secrets.DATABASE_PASSWORD }}
       TF_VAR_backend_bucket_name: ${{ secrets.BACKEND_BUCKET_NAME }}
-      TF_VAR_s3_terraform_state_bucket: ${{ secrets.S3_TERRAFORM_STATE_BUCKET }}
-      TF_VAR_dynamodb_terraform_lock_table: ${{ secrets.DYNAMODB_TERRAFORM_LOCK_TABLE }}
     steps:
       - uses: actions/checkout@v3
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID}}:role/comp-digital-role
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ secrets.OIDC_ROLE_NAME }}
           aws-region: ${{ secrets.AWS_REGION }}
       
       - name: Setup Terraform
@@ -37,6 +35,11 @@ jobs:
       - name: Terraform Init & Apply
         working-directory: ./terraform
         run: |
-          terraform init
+          terraform init \
+            -backend-config="bucket=${{ secrets.S3_TERRAFORM_STATE_BUCKET }}" \
+            -backend-config="key=prod/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TERRAFORM_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
           terraform plan
           terraform apply -auto-approve
